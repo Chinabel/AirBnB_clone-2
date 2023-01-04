@@ -83,7 +83,7 @@ At the end of this project, you are expected to be able to explain to anyone, wi
 - The length of your files will be tested using wc
 
 # GitHub
-###There should be one project repository per group. If you clone/fork/whatever a partner’s project repository with the same name before the second deadline, you risk a 0% score.
+### There should be one project repository per group. If you clone/fork/whatever a partner’s project repository with the same name before the second deadline, you risk a 0% score.
 
 # More Info
 ![image](https://user-images.githubusercontent.com/106745705/210517262-d41243fb-7608-4173-a803-27848c890ada.png)
