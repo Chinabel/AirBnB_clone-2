@@ -40,15 +40,7 @@ exec { 'make-static-files-folder':
 
 file { '/data/web_static/releases/test/index.html':
   content =>
-"<!DOCTYPE html>
-<html lang='en-US'>
-	<head>
-		<title>Home - AirBnB Clone</title>
-	</head>
-	<body>
-		<h1>Welcome to AirBnB!</h1>
-	<body>
-</html>
+"Hello World!
 ",
   replace => true,
   require => Exec['make-static-files-folder'],
@@ -88,9 +80,7 @@ file { '/etc/nginx/sites-available/default':
 		alias /data/web_static/current/;
 		try_files \$uri \$uri/ =404;
 	}
-	if (\$request_filename ~ redirect_me){
-		rewrite ^ https://sketchfab.com/bluepeno/models permanent;
-	}
+
 	location = /404.html {
 		root /var/www/error/;
 		internal;
