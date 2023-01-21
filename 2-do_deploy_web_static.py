@@ -1,60 +1,56 @@
 #!/usr/bin/python3
-"""A module for web application deployment with Fabric."""
-import os
+from fabric.api import *
 from datetime import datetime
-from fabric.api import env, local, put, run, runs_once
+import os.path
 
 
-env.hosts = ["100.25.223.168", "100.25.148.26"]
-"""The list of host server IP addresses."""
-
-
-@runs_once
-def do_pack():
-    """Archives the static files."""
-    if not os.path.isdir("versions"):
-        os.mkdir("versions")
-    cur_time = datetime.now()
-    output = "versions/web_static_{}{}{}{}{}{}.tgz".format(
-        cur_time.year,
-        cur_time.month,
-        cur_time.day,
-        cur_time.hour,
-        cur_time.minute,
-        cur_time.second
-    )
-    try:
-        print("Packing web_static to {}".format(output))
-        local("tar -cvzf {} web_static".format(output))
-        archize_size = os.stat(output).st_size
-        print("web_static packed: {} -> {} Bytes".format(output, archize_size))
-    except Exception:
-        output = None
-    return output
+env.hosts = ['100.25.223.168', '100.25.148.26']
 
 
 def do_deploy(archive_path):
-    """Deploys the static files to the host servers.
-    Args:
-        archive_path (str): The path to the archived static files.
-    """
-    if not os.path.exists(archive_path):
+    """Function that distributes an archive to your web servers"""
+
+    if os.path.exists(archive_path) is False:
         return False
-    file_name = os.path.basename(archive_path)
-    folder_name = file_name.replace(".tgz", "")
-    folder_path = "/data/web_static/releases/{}/".format(folder_name)
-    success = False
-    try:
-        put(archive_path, "/tmp/{}".format(file_name))
-        run("mkdir -p {}".format(folder_path))
-        run("tar -xzf /tmp/{} -C {}".format(file_name, folder_path))
-        run("rm -rf /tmp/{}".format(file_name))
-        run("mv {}web_static/* {}".format(folder_path, folder_path))
-        run("rm -rf {}web_static".format(folder_path))
-        run("rm -rf /data/web_static/current")
-        run("ln -s {} /data/web_static/current".format(folder_path))
-        print('New version deployed!')
-        success = True
-    except Exception:
-        success = False
-    return success
+
+    status = True
+
+    upload = put(archive_path, '/tmp/')
+    if upload.failed:
+        status = False
+
+    archive_name = archive_path.replace("versions/", "")
+    directory_name = archive_name.replace(".tgz", "")
+
+    folder = '/data/web_static/releases/{}/'.format(directory_name)
+
+    directory = run("mkdir -p {}".format(folder))
+    if directory.failed:
+        status = False
+
+    unpack_cmd = 'tar -xzf /tmp/{} -C {}'.format(archive_name, folder)
+    unpack = run(unpack_cmd)
+    if unpack.failed:
+        status = False
+
+    remove = run('rm /tmp/{}'.format(archive_name))
+    if remove.failed:
+        status = False
+
+    move = run('mv {}web_static/* {}'.format(folder, folder))
+    if move.failed:
+        status = False
+
+    remove = run('rm -rf {}web_static'.format(folder))
+    if remove.failed:
+        status = False
+
+    remove = run('rm -rf /data/web_static/current')
+    if remove.failed:
+        status = False
+
+    link = run('ln -s {} /data/web_static/current'.format(folder))
+    if link.failed:
+        status = False
+
+    return status
